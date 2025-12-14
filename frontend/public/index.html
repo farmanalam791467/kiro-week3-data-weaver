@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Serverless Image Editor - Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            padding: 40px 0;
+        }
+
+        header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: white;
+            color: #667eea;
+            padding: 15px 40px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .feature-card h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.5em;
+        }
+
+        .feature-card p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .spec-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .spec-box {
+            background: rgba(255,255,255,0.1);
+            border: 2px solid white;
+            border-radius: 15px;
+            padding: 20px;
+            color: white;
+            text-align: center;
+        }
+
+        .spec-box h4 {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .spec-box p {
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+
+        footer {
+            text-align: center;
+            color: white;
+            margin-top: 40px;
+            padding: 20px;
+            opacity: 0.8;
+        }
+
+        .editor-showcase {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+
+        .editor-showcase h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+
+        .editor-showcase p {
+            color: #666;
+            font-size: 1.1em;
+            margin-bottom: 30px;
+            line-height: 1.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎨 Serverless Image Editor</h1>
+            <p>Professional Image Editing Powered by Serverless Technology</p>
+            <a href="editor.html" class="cta-button">✨ Launch Editor</a>
+        </header>
+
+        <div class="editor-showcase">
+            <h2>Welcome to the Image Editor</h2>
+            <p>
+                Edit images directly in your browser with real-time preview. Leverage serverless 
+                architecture for batch processing and heavy computations without managing infrastructure.
+            </p>
+        </div>
+
+        <div class="spec-grid">
+            <div class="spec-box">
+                <h4>⚡ Instant Processing</h4>
+                <p>Real-time Edits</p>
+            </div>
+            <div class="spec-box">
+                <h4>🚀 Serverless</h4>
+                <p>AWS Lambda Ready</p>
+            </div>
+            <div class="spec-box">
+                <h4>🎨 20+ Filters</h4>
+                <p>Professional Effects</p>
+            </div>
+            <div class="spec-box">
+                <h4>📦 No Dependencies</h4>
+                <p>Client-Side Optimized</p>
+            </div>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <h3>🖼️ Real-Time Editing</h3>
+                <p>
+                    Edit images directly in your browser with instant visual feedback. 
+                    No need to wait for server processing on basic operations.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <h3>🎯 Professional Filters</h3>
+                <p>
+                    Access a library of 20+ professional filters including vintage, sepia, 
+                    grayscale, and advanced effects like edge detection.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <h3>⚙️ Fine Adjustments</h3>
+                <p>
+                    Precision control over brightness, contrast, saturation, hue, and more. 
+                    Every slider provides instant visual feedback.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <h3>🔄 Undo/Redo</h3>
+                <p>
+                    Full history management with unlimited undo and redo capabilities. 
+                    Experiment fearlessly with your edits.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <h3>💾 Multiple Formats</h3>
+                <p>
+                    Download your edited images in PNG or JPG format. Choose the best 
+                    quality and file size for your needs.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <h3>☁️ Serverless Ready</h3>
+                <p>
+                    Deploy to AWS Lambda for batch processing and heavy computations. 
+                    Scale automatically with your usage.
+                </p>
+            </div>
+        </div>
+
+        <footer>
+            <p>🚀 Serverless Image Editor | AWS Lambda | Kiro Week 3 Challenge | Built with ❤️</p>
+        </footer>
+    </div>
+</body>
+</html>

@@ -1,0 +1,204 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Description: >
+  Serverless Image Editor - AWS SAM Template
+  Deploys image processing microservices to AWS Lambda with API Gateway
+
+Globals:
+  Function:
+    Timeout: 60
+    MemorySize: 1024
+    Runtime: nodejs18.x
+    Environment:
+      Variables:
+        REGION: !Ref AWS::Region
+
+Parameters:
+  ImageBucketName:
+    Type: String
+    Default: image-editor-bucket
+    Description: S3 bucket for storing images
+
+Resources:
+  # S3 Bucket for image storage
+  ImageBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '${ImageBucketName}-${AWS::AccountId}'
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+      VersioningConfiguration:
+        Status: Enabled
+      CorsConfiguration:
+        CorsRules:
+          - AllowedMethods: [GET, PUT, POST, DELETE]
+            AllowedOrigins: ['*']
+            AllowedHeaders: ['*']
+            MaxAge: 3000
+
+  # Lambda Layer for dependencies (Sharp, AWS SDK)
+  ImageProcessingLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: image-processing-layer
+      ContentUri: backend/layers
+      CompatibleRuntimes:
+        - nodejs18.x
+
+  # Lambda Function for Image Processing
+  ImageProcessorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: image-processor
+      CodeUri: backend/functions/
+      Handler: image-processor.handler
+      Runtime: nodejs18.x
+      MemorySize: 2048
+      Timeout: 300
+      Layers:
+        - !Ref ImageProcessingLayer
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref ImageBucket
+      Environment:
+        Variables:
+          IMAGE_BUCKET: !Ref ImageBucket
+      Events:
+        ProcessImageApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ImageEditorApi
+            Path: /process
+            Method: POST
+
+  # Lambda Function for Batch Processing
+  BatchProcessorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: batch-processor
+      CodeUri: backend/functions/
+      Handler: image-processor.batchHandler
+      Runtime: nodejs18.x
+      MemorySize: 2048
+      Timeout: 300
+      Layers:
+        - !Ref ImageProcessingLayer
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref ImageBucket
+      Environment:
+        Variables:
+          IMAGE_BUCKET: !Ref ImageBucket
+      Events:
+        BatchProcessApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ImageEditorApi
+            Path: /batch
+            Method: POST
+
+  # API Gateway
+  ImageEditorApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: image-editor-api
+      StageName: prod
+      TracingEnabled: true
+      MethodSettings:
+        - ResourcePath: '/*'
+          HttpMethod: '*'
+          LoggingLevel: INFO
+          DataTraceEnabled: true
+          MetricsEnabled: true
+      Cors:
+        AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
+        AllowHeaders: "'Content-Type,Authorization'"
+        AllowOrigin: "'*'"
+
+  # CloudWatch Log Group for API
+  ApiLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/apigateway/${ImageEditorApi}'
+      RetentionInDays: 7
+
+  # IAM Role for Lambda execution
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+      Tags:
+        - Key: Environment
+          Value: production
+
+  # CloudWatch Alarms
+  LambdaErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: image-processor-errors
+      AlarmDescription: Alert when Lambda functions have errors
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  # DynamoDB Table for processing history
+  ProcessingHistoryTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: image-processing-history
+      AttributeDefinitions:
+        - AttributeName: processId
+          AttributeType: S
+        - AttributeName: timestamp
+          AttributeType: N
+      KeySchema:
+        - AttributeName: processId
+          KeyType: HASH
+        - AttributeName: timestamp
+          KeyType: RANGE
+      BillingMode: PAY_PER_REQUEST
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+
+Outputs:
+  ApiEndpoint:
+    Description: Image Editor API Endpoint
+    Value: !Sub 'https://${ImageEditorApi}.execute-api.${AWS::Region}.amazonaws.com/prod'
+    Export:
+      Name: !Sub '${AWS::StackName}-ApiEndpoint'
+
+  ImageBucketName:
+    Description: S3 Bucket for image storage
+    Value: !Ref ImageBucket
+    Export:
+      Name: !Sub '${AWS::StackName}-ImageBucket'
+
+  ImageProcessorFunctionArn:
+    Description: ARN of Image Processor Lambda Function
+    Value: !GetAtt ImageProcessorFunction.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-ImageProcessorArn'
+
+  BatchProcessorFunctionArn:
+    Description: ARN of Batch Processor Lambda Function
+    Value: !GetAtt BatchProcessorFunction.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-BatchProcessorArn'
